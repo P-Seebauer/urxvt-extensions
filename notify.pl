@@ -31,7 +31,7 @@ sub on_user_command {
   }
 }
 
-sub on_line_update{
+sub on_add_lines {
   return unless $watch;
   if($watch eq 'activity'){
       my_notify('active');
@@ -42,7 +42,6 @@ sub on_line_update{
 sub indicate_status {
   my ($term) = @_;
   $term->overlay_simple(-1,0,$watch) if $watch;
-  warn "foo";
 }
 
 sub my_notify {
