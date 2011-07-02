@@ -14,29 +14,28 @@ sub on_init{
   $notify_daemon = Desktop::Notify->new();
 }
 
-my $timer;
+
 sub on_user_command {
   my($term, $string) = @_;
   if($string =~ /$prefix(.*)$/){
     $watch = $watch eq $1 ? '' : $1;
     indicate_status($term);
-    if($watch eq 'inactivity'){
-      (my $iw = new urxvt::iw)
-	->cb(sub{my ($i) = @_;
-		 my_notify('inactive');
-		 $i->stop;
-	     })
-	->start;
-    }
+    start_watching() if($watch eq 'inactivity')
   }
 }
+
+my ($timer, $changed);
+sub start_watching {
+}
+
 
 sub on_add_lines {
   return unless $watch;
   if($watch eq 'activity'){
       my_notify('active');
       $watch = "";
-    }
+  }
+  $changed = 1;
 }
 
 sub indicate_status {
