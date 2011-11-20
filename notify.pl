@@ -22,14 +22,18 @@ sub on_user_command {
   if($string =~ /$prefix(.*)$/){
     $watch = $watch eq $1 ? '' : $1;
     indicate_status($term);
-    start_watching() if($watch eq 'inactivity')
+    if($watch eq 'inactivity'){
+      $term->{inactivity_timer} = urxvt::timer
+      -> new
+      -> after(2)
+      -> cb(sub{
+          my_notify('inactive');
+          $watch = "";
+        });
+    }
   }
 
   ()
-}
-
-my ($timer, $changed);
-sub start_watching {
 }
 
 
@@ -38,7 +42,9 @@ sub on_add_lines {
       my_notify('active');
       $watch = "";
   }
-  $changed = 1;
+  elsif($watch eq 'inactivity'){
+    $term->{inactivity_timer}->after(2);
+  }
 
   ()
 }
