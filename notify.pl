@@ -23,6 +23,7 @@ sub on_user_command {
     if($watch eq $1){
       $watch = '';
       delete $term->{activity_ov};
+      delete $term->{inactivity_timer};
     } else {
       $watch = $1;
       $term->{activity_ov} = $term->overlay_simple(-1, 0, $watch);
@@ -35,6 +36,7 @@ sub on_user_command {
             my_notify('inactive');
             $watch = "";
             delete $term->{activity_ov};
+            delete $term->{inactivity_timer};
           });
       }
     }
