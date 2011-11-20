@@ -7,7 +7,7 @@ use Desktop::Notify;
 my ($watch, $prefix, $notify_daemon) =
    ("",    'activityWatcher-');
 
-sub on_init{
+sub on_start{
   my ($t) = @_;
   $t->parse_keysym("M-C-a", "perl:$prefix"."activity");
   $t->parse_keysym("M-C-i", "perl:$prefix"."inactivity");
