@@ -12,6 +12,8 @@ sub on_init{
   $t->parse_keysym("M-C-a", "perl:$prefix"."activity");
   $t->parse_keysym("M-C-i", "perl:$prefix"."inactivity");
   $notify_daemon = Desktop::Notify->new();
+
+  ()
 }
 
 
@@ -22,6 +24,8 @@ sub on_user_command {
     indicate_status($term);
     start_watching() if($watch eq 'inactivity')
   }
+
+  ()
 }
 
 my ($timer, $changed);
@@ -30,12 +34,13 @@ sub start_watching {
 
 
 sub on_add_lines {
-  return unless $watch;
   if($watch eq 'activity'){
       my_notify('active');
       $watch = "";
   }
   $changed = 1;
+
+  ()
 }
 
 sub indicate_status {
