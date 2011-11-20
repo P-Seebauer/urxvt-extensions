@@ -20,16 +20,23 @@ sub on_start{
 sub on_user_command {
   my($term, $string) = @_;
   if($string =~ /$prefix(.*)$/){
-    $watch = $watch eq $1 ? '' : $1;
-    indicate_status($term);
-    if($watch eq 'inactivity'){
-      $term->{inactivity_timer} = urxvt::timer
-      -> new
-      -> after(2)
-      -> cb(sub{
-          my_notify('inactive');
-          $watch = "";
-        });
+    if($watch eq $1){
+      $watch = '';
+      delete $term->{activity_ov};
+    } else {
+      $watch = $1;
+      $term->{activity_ov} = $term->overlay_simple(-1, 0, $watch);
+
+      if($watch eq 'inactivity'){
+        $term->{inactivity_timer} = urxvt::timer
+        -> new
+        -> after(2)
+        -> cb(sub{
+            my_notify('inactive');
+            $watch = "";
+            delete $term->{activity_ov};
+          });
+      }
     }
   }
 
@@ -41,17 +48,13 @@ sub on_add_lines {
   if($watch eq 'activity'){
       my_notify('active');
       $watch = "";
+      delete $term->{activity_ov};
   }
   elsif($watch eq 'inactivity'){
     $term->{inactivity_timer}->after(2);
   }
 
   ()
-}
-
-sub indicate_status {
-  my ($term) = @_;
-  $term->overlay_simple(-1,0,$watch) if $watch;
 }
 
 sub my_notify {
