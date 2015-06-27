@@ -7,40 +7,56 @@ use Desktop::Notify;
 my ($watch, $prefix, $notify_daemon) =
    ("",    'activityWatcher-');
 
-sub on_init{
+sub on_start{
   my ($t) = @_;
   $t->parse_keysym("M-C-a", "perl:$prefix"."activity");
   $t->parse_keysym("M-C-i", "perl:$prefix"."inactivity");
   $notify_daemon = Desktop::Notify->new();
+
+  ()
 }
 
 
 sub on_user_command {
   my($term, $string) = @_;
   if($string =~ /$prefix(.*)$/){
-    $watch = $watch eq $1 ? '' : $1;
-    indicate_status($term);
-    start_watching() if($watch eq 'inactivity')
-  }
-}
+    if($watch eq $1){
+      $watch = '';
+      delete $term->{activity_ov};
+      delete $term->{inactivity_timer};
+    } else {
+      $watch = $1;
+      $term->{activity_ov} = $term->overlay_simple(-1, 0, $watch);
 
-my ($timer, $changed);
-sub start_watching {
+      if($watch eq 'inactivity'){
+        $term->{inactivity_timer} = urxvt::timer
+        -> new
+        -> after(2)
+        -> cb(sub{
+            my_notify('inactive');
+            $watch = "";
+            delete $term->{activity_ov};
+            delete $term->{inactivity_timer};
+          });
+      }
+    }
+  }
+
+  ()
 }
 
 
 sub on_add_lines {
-  return unless $watch;
   if($watch eq 'activity'){
       my_notify('active');
       $watch = "";
+      delete $term->{activity_ov};
   }
-  $changed = 1;
-}
+  elsif($watch eq 'inactivity'){
+    $term->{inactivity_timer}->after(2);
+  }
 
-sub indicate_status {
-  my ($term) = @_;
-  $term->overlay_simple(-1,0,$watch) if $watch;
+  ()
 }
 
 sub my_notify {
